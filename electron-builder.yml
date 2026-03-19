@@ -1,0 +1,24 @@
+appId: com.ai-code-reviewer.app
+productName: AI Code Reviewer
+directories:
+  buildResources: build
+  output: release
+files:
+  - dist-electron
+  - dist
+npmRebuild: true
+publish:
+  provider: generic
+  url: ""
+mac:
+  target:
+    - dmg
+    - zip
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+win:
+  target:
+    - nsis
+linux:
+  target:
+    - AppImage
+    - deb
