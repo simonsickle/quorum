@@ -14,7 +14,7 @@ import { AnthropicProvider } from './providers/anthropic';
 import { OpenAIProvider } from './providers/openai';
 import { GeminiProvider } from './providers/gemini';
 import { shouldEnableDesignReview, hasSnapshotTests } from './sub-agents/design-review';
-import { RepoRulesParser } from '../utils/repo-rules';
+import { RepoRulesParser } from '../../utils/repo-rules';
 import { GitHubClient } from '../github/client';
 import crypto from 'crypto';
 
@@ -226,8 +226,8 @@ export class ReviewOrchestrator {
     } else {
       // Fallback: simple grouping without Haiku
       consensusFindings = allFindings.map((f) => ({
-        id: crypto.randomUUID(),
         ...f,
+        id: crypto.randomUUID(),
         confidence: 'low' as const,
         sourceModels: [f.modelSource],
         sourceAgents: [f.subAgentSource],
