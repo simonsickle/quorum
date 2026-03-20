@@ -19,9 +19,22 @@ export type ReviewCategory =
 
 export type ModelProvider = 'anthropic' | 'openai' | 'gemini';
 
-export type SubAgentRole = 'tech-lead' | 'senior-engineer' | 'copyright-tone' | 'design-review';
+export type BuiltInAgentRole = 'tech-lead' | 'senior-engineer' | 'copyright-tone' | 'design-review';
+
+export type SubAgentRole = BuiltInAgentRole | (string & {});
 
 export type ConfidenceTier = 'high' | 'medium' | 'low';
+
+export type AgentEnableCondition = 'always' | 'ui-files' | 'backend-files' | 'test-files';
+
+export interface CustomSubAgentConfig {
+  id: string;
+  name: string;
+  prompt: string;
+  categories: ReviewCategory[];
+  enableCondition: AgentEnableCondition;
+  enabled: boolean;
+}
 
 export interface ReviewFinding {
   id: string;
