@@ -1,4 +1,4 @@
-import { ModelProvider } from './review';
+import { ModelProvider, CustomSubAgentConfig } from './review';
 
 export interface APIKeyConfig {
   provider: ModelProvider;
@@ -26,6 +26,7 @@ export interface AppSettings {
   pollIntervalMinutes: number;
   enableDesignReview: boolean;
   enableStackDetection: boolean;
+  customAgents: CustomSubAgentConfig[];
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -67,4 +68,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   pollIntervalMinutes: 5,
   enableDesignReview: true,
   enableStackDetection: true,
+  customAgents: [],
 };
