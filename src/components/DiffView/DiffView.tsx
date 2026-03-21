@@ -1,9 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { useReview } from '../../hooks/useReview';
 import { DiffFile } from './DiffFile';
+import { FindingFilters, FindingFilterState, DEFAULT_FILTERS } from './FindingFilters';
+import { ReviewHistory } from './ReviewHistory';
 import { PRFile } from '../../types/github';
+import { ConsensusFinding, ReviewCategory } from '../../types/review';
 
 export function DiffView() {
   const { prId } = useParams<{ prId: string }>();
@@ -24,6 +27,8 @@ export function DiffView() {
 
   const [files, setFiles] = useState<PRFile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<FindingFilterState>({ ...DEFAULT_FILTERS });
+  const [showHistory, setShowHistory] = useState(false);
 
   // Fetch diff data
   useEffect(() => {
@@ -50,25 +55,80 @@ export function DiffView() {
     fetchDiff();
   }, [selectedPR]);
 
+  // Filter findings
+  const allFindings = review?.findings || [];
+
+  const availableCategories = useMemo(() => {
+    const cats = new Set<ReviewCategory>();
+    for (const f of allFindings) cats.add(f.category);
+    return Array.from(cats).sort();
+  }, [allFindings]);
+
+  const filteredFindings = useMemo(() => {
+    return allFindings.filter((f) => {
+      if (!filters.severities.has(f.severity)) return false;
+      if (!filters.confidences.has(f.confidence)) return false;
+      if (filters.categories.size > 0 && !filters.categories.has(f.category)) return false;
+      if (filters.hideActioned && f.userAction) return false;
+      if (filters.searchQuery) {
+        const q = filters.searchQuery.toLowerCase();
+        const searchable = `${f.description} ${f.filePath} ${f.category} ${f.suggestedFix}`.toLowerCase();
+        if (!searchable.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [allFindings, filters]);
+
   // Group findings by file
   const findingsByFile = useMemo(() => {
-    if (!review?.findings) return new Map();
-    const map = new Map<string, typeof review.findings>();
-    for (const finding of review.findings) {
+    const map = new Map<string, ConsensusFinding[]>();
+    for (const finding of filteredFindings) {
       if (!map.has(finding.filePath)) map.set(finding.filePath, []);
       map.get(finding.filePath)!.push(finding);
     }
     return map;
-  }, [review]);
+  }, [filteredFindings]);
 
   // Count agreed findings for submit button
-  const agreedCount = review?.findings.filter((f) => f.userAction === 'agree').length || 0;
+  const agreedCount = allFindings.filter((f) => f.userAction === 'agree').length;
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      // Ignore if typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if (e.key === 'r' && !e.metaKey && !e.ctrlKey && !running) {
+        e.preventDefault();
+        startReview();
+      } else if (e.key === 'Escape') {
+        if (running) {
+          cancelReview();
+        } else if (showHistory) {
+          setShowHistory(false);
+        } else {
+          navigate('/');
+        }
+      } else if (e.key === 'h' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setShowHistory((prev) => !prev);
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [running, startReview, cancelReview, navigate, showHistory]);
 
   const handleSubmitToGitHub = async () => {
     if (!selectedPR || agreedCount === 0) return;
 
     const [owner, repo] = selectedPR.repository.nameWithOwner.split('/');
-    const agreedFindings = review!.findings.filter((f) => f.userAction === 'agree');
+    const agreedFindings = allFindings.filter((f) => f.userAction === 'agree');
 
     const comments = agreedFindings.map((f) => ({
       path: f.filePath,
@@ -133,6 +193,19 @@ export function DiffView() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* History toggle */}
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className={`px-3 py-2 rounded-md text-sm border transition-colors ${
+                showHistory
+                  ? 'bg-accent-blue/10 text-accent-blue border-accent-blue/50'
+                  : 'bg-surface-2 text-text-secondary border-border-default hover:bg-surface-3'
+              }`}
+              title="Review history (H)"
+            >
+              History
+            </button>
+
             {/* Review controls */}
             {running ? (
               <button
@@ -145,6 +218,7 @@ export function DiffView() {
               <button
                 onClick={startReview}
                 className="px-4 py-2 rounded-md bg-accent-blue text-white hover:bg-accent-blue/80 text-sm font-medium"
+                title="Run AI Review (R)"
               >
                 Run AI Review
               </button>
@@ -210,7 +284,33 @@ export function DiffView() {
             {error}
           </div>
         )}
+
+        {/* Keyboard shortcuts hint */}
+        <div className="flex items-center gap-3 mt-2 text-xs text-text-muted">
+          <span><kbd className="px-1 py-0.5 bg-surface-3 rounded text-[10px]">R</kbd> Review</span>
+          <span><kbd className="px-1 py-0.5 bg-surface-3 rounded text-[10px]">H</kbd> History</span>
+          <span><kbd className="px-1 py-0.5 bg-surface-3 rounded text-[10px]">Esc</kbd> Back</span>
+        </div>
       </div>
+
+      {/* Review history panel */}
+      {showHistory && (
+        <ReviewHistory
+          prId={decodedPrId}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
+
+      {/* Finding filters */}
+      {allFindings.length > 0 && !running && (
+        <FindingFilters
+          filters={filters}
+          onChange={setFilters}
+          totalCount={allFindings.length}
+          visibleCount={filteredFindings.length}
+          availableCategories={availableCategories}
+        />
+      )}
 
       {/* Diff files */}
       <div className="flex-1 overflow-y-auto p-6">

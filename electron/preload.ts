@@ -13,6 +13,8 @@ export interface ElectronAPI {
   reviews: {
     runReview: (prId: string) => Promise<any>;
     getReviewResults: (prId: string) => Promise<any>;
+    getReviewHistory: (prId: string) => Promise<any[]>;
+    loadSpecificReview: (reviewId: string) => Promise<any>;
     cancelReview: () => void;
     onProgress: (callback: (progress: any) => void) => () => void;
   };
@@ -55,6 +57,8 @@ const api: ElectronAPI = {
   reviews: {
     runReview: (prId) => ipcRenderer.invoke('reviews:run', prId),
     getReviewResults: (prId) => ipcRenderer.invoke('reviews:get-results', prId),
+    getReviewHistory: (prId) => ipcRenderer.invoke('reviews:get-history', prId),
+    loadSpecificReview: (reviewId) => ipcRenderer.invoke('reviews:load-specific', reviewId),
     cancelReview: () => ipcRenderer.send('reviews:cancel'),
     onProgress: (callback) => {
       const handler = (_event: any, progress: any) => callback(progress);

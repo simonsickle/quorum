@@ -8,6 +8,7 @@ export interface ReviewSlice {
   reviewError: string | null;
   runReview: (prId: string) => Promise<void>;
   loadReview: (prId: string) => Promise<void>;
+  loadSpecificReview: (reviewId: string) => Promise<void>;
   cancelReview: () => void;
   updateFindingAction: (findingId: string, action: 'agree' | 'disagree') => void;
   setProgress: (progress: ReviewProgress) => void;
@@ -40,6 +41,17 @@ export const createReviewSlice: StateCreator<ReviewSlice> = (set, get) => ({
       }
     } catch (error: any) {
       console.error('Failed to load review:', error);
+    }
+  },
+
+  loadSpecificReview: async (reviewId) => {
+    try {
+      const result = await window.electronAPI.reviews.loadSpecificReview(reviewId);
+      if (result) {
+        set({ currentReview: result });
+      }
+    } catch (error: any) {
+      console.error('Failed to load specific review:', error);
     }
   },
 
