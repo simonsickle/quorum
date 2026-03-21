@@ -134,6 +134,43 @@ export function registerReviewHandlers(
     };
   });
 
+  ipcMain.handle('reviews:get-history', async (_event, prId: string) => {
+    const db = getDatabase();
+    return db
+      .prepare(
+        'SELECT * FROM review_results WHERE pr_id = ? ORDER BY created_at DESC'
+      )
+      .all(prId) as any[];
+  });
+
+  ipcMain.handle('reviews:load-specific', async (_event, reviewId: string) => {
+    const db = getDatabase();
+
+    const review = db
+      .prepare('SELECT * FROM review_results WHERE id = ?')
+      .get(reviewId) as any;
+
+    if (!review) return null;
+
+    const findings = db
+      .prepare('SELECT * FROM review_findings WHERE review_id = ? ORDER BY confidence DESC, severity ASC')
+      .all(review.id) as any[];
+
+    return {
+      ...review,
+      modelsUsed: JSON.parse(review.models_used),
+      agentsUsed: JSON.parse(review.agents_used),
+      findings: findings.map((f) => ({
+        ...f,
+        sourceModels: JSON.parse(f.source_models),
+        sourceAgents: JSON.parse(f.source_agents),
+        originalFindings: f.original_findings
+          ? JSON.parse(f.original_findings)
+          : [],
+      })),
+    };
+  });
+
   ipcMain.on('reviews:cancel', () => {
     if (activeOrchestrator) {
       activeOrchestrator.cancel();
