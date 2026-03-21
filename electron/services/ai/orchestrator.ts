@@ -18,8 +18,6 @@ import { OpenAIProvider } from './providers/openai';
 import { GeminiProvider } from './providers/gemini';
 import { shouldEnableDesignReview, hasSnapshotTests } from './sub-agents/design-review';
 import { RepoRulesParser } from '../../utils/repo-rules';
-import { hasSnapshotTests } from './sub-agents/design-review';
-import { RepoRulesParser } from '../utils/repo-rules';
 import { GitHubClient } from '../github/client';
 import crypto from 'crypto';
 
