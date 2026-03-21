@@ -1,4 +1,4 @@
-import { SubAgentRole } from '../types';
+import { SubAgentRole, AgentSkillDefinition } from '../types';
 
 export const REVIEW_OUTPUT_SCHEMA = `
 You MUST respond with a valid JSON array of findings. Each finding must match this schema:
@@ -46,8 +46,10 @@ ${stackContext}
 `;
 }
 
+const BUILT_IN_AGENT_ROLES = ['tech-lead', 'senior-engineer', 'copyright-tone', 'design-review'] as const;
+
 export function getSubAgentPrompt(role: SubAgentRole): string {
-  const prompts: Record<SubAgentRole, string> = {
+  const prompts: Record<string, string> = {
     'tech-lead': `You are a Tech Lead reviewer. Focus on:
 - **Architecture**: Is the code well-structured? Does it follow established patterns?
 - **Separation of concerns**: Are responsibilities properly divided?
@@ -91,7 +93,27 @@ Only flag issues where there's a clear standard being violated or a real problem
 Focus on the UI-related files in the diff. Skip backend-only changes.`,
   };
 
-  return prompts[role];
+  return prompts[role as string] || '';
+}
+
+export function getSkillsPromptSection(skills: AgentSkillDefinition[]): string {
+  if (skills.length === 0) return '';
+
+  const skillDescriptions = skills.map((skill) => {
+    const params = Object.entries(skill.parameters)
+      .map(([name, p]) => `    - ${name} (${p.type}${p.required ? ', required' : ''}): ${p.description}`)
+      .join('\n');
+    return `- **${skill.name}**: ${skill.description}\n  Parameters:\n${params}`;
+  }).join('\n\n');
+
+  return `
+## Available Skills
+You have access to the following skills to gather more context during your review. To use a skill, include a tool_call in your response:
+
+${skillDescriptions}
+
+When you need more context about the code (e.g., full file contents, finding references, understanding directory structure), use these skills before providing your findings. You may make multiple skill calls.
+`;
 }
 
 export function buildReviewPrompt(
@@ -100,9 +122,14 @@ export function buildReviewPrompt(
   repoRules: { source: string; content: string }[],
   prTitle: string,
   prBody: string,
-  stackContext?: string
+  stackContext?: string,
+  customPrompt?: string,
+  skills?: AgentSkillDefinition[]
 ): string {
-  return `${getSubAgentPrompt(role)}
+  const agentPrompt = customPrompt || getSubAgentPrompt(role);
+  const skillsSection = skills ? getSkillsPromptSection(skills) : '';
+
+  return `${agentPrompt}
 
 ## PR Information
 **Title**: ${prTitle}
@@ -110,6 +137,7 @@ export function buildReviewPrompt(
 
 ${getRepoRulesContext(repoRules)}
 ${getStackContext(stackContext)}
+${skillsSection}
 
 ## Diff to Review
 \`\`\`diff

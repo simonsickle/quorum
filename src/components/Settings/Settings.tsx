@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../../store';
 import { APIKeyInput } from './APIKeyInput';
 import { ModelSelector } from './ModelSelector';
+import { CustomAgents } from './CustomAgents';
 import { ModelProvider } from '../../types/review';
 
 export function Settings() {
@@ -129,6 +130,12 @@ export function Settings() {
             ))}
           </div>
         </section>
+
+        {/* Custom Agents */}
+        <CustomAgents
+          agents={settings.customAgents || []}
+          onSave={(agents) => saveSettings({ customAgents: agents })}
+        />
 
         {/* Preferences */}
         <section>

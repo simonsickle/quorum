@@ -7,14 +7,19 @@ import {
   ReviewProgress,
   ReviewResult,
   SubAgentRole,
+  CustomSubAgentConfig,
 } from '../types';
 import { ModelHarness } from './model-harness';
 import { ConsensusEngine } from './consensus';
+import { AgentRegistry } from './agent-registry';
+import { SkillRegistry } from './skills/registry';
 import { AnthropicProvider } from './providers/anthropic';
 import { OpenAIProvider } from './providers/openai';
 import { GeminiProvider } from './providers/gemini';
 import { shouldEnableDesignReview, hasSnapshotTests } from './sub-agents/design-review';
 import { RepoRulesParser } from '../../utils/repo-rules';
+import { hasSnapshotTests } from './sub-agents/design-review';
+import { RepoRulesParser } from '../utils/repo-rules';
 import { GitHubClient } from '../github/client';
 import crypto from 'crypto';
 
@@ -29,9 +34,15 @@ interface OrchestratorConfig {
 export class ReviewOrchestrator {
   private config: OrchestratorConfig;
   private cancelled = false;
+  private agentRegistry: AgentRegistry;
 
   constructor(config: OrchestratorConfig) {
     this.config = config;
+    this.agentRegistry = new AgentRegistry();
+
+    // Load custom agents from settings
+    const customAgents: CustomSubAgentConfig[] = config.settings.customAgents || [];
+    this.agentRegistry.loadCustomAgents(customAgents);
   }
 
   cancel(): void {
@@ -102,21 +113,27 @@ export class ReviewOrchestrator {
       prBody: prData.body || '',
     };
 
-    // Determine which agents to enable
+    // Determine which agents to enable using the registry
     const filePaths = diffData.files.map((f: any) => f.filename);
     const fileTypes = filePaths.map((fp: string) => fp.split('.').pop() || '');
     const snapshotTestsExist = hasSnapshotTests(filePaths);
+    const enableDesignReview = this.config.settings.enableDesignReview !== false;
 
-    const agents: SubAgentRole[] = ['tech-lead', 'senior-engineer', 'copyright-tone'];
-    if (
-      shouldEnableDesignReview({
-        fileTypes,
-        hasSnapshotTests: snapshotTestsExist,
-        filePaths,
-      })
-    ) {
-      agents.push('design-review');
+    const agents = this.agentRegistry.getEnabledAgents(
+      { filePaths, fileTypes, hasSnapshotTests: snapshotTestsExist },
+      enableDesignReview
+    );
+
+    // Collect custom prompts for any custom agents
+    const agentPrompts: Record<string, string> = {};
+    for (const role of agents) {
+      if (this.agentRegistry.isCustomAgent(role)) {
+        agentPrompts[role as string] = this.agentRegistry.getPrompt(role);
+      }
     }
+
+    // Create skill registry with GitHub context
+    const skillRegistry = new SkillRegistry(client, owner, repo, prData.headRefOid || prData.headRefName || 'HEAD');
 
     // Create model harnesses for enabled providers
     const harnesses: ModelHarness[] = [];
@@ -129,6 +146,8 @@ export class ReviewOrchestrator {
         new ModelHarness({
           provider: new AnthropicProvider(key, model),
           enabledAgents: agents,
+          agentPrompts,
+          skillRegistry,
         })
       );
     }
@@ -140,6 +159,8 @@ export class ReviewOrchestrator {
         new ModelHarness({
           provider: new OpenAIProvider(key, model),
           enabledAgents: agents,
+          agentPrompts,
+          skillRegistry,
         })
       );
     }
@@ -151,6 +172,8 @@ export class ReviewOrchestrator {
         new ModelHarness({
           provider: new GeminiProvider(key, model),
           enabledAgents: agents,
+          agentPrompts,
+          skillRegistry,
         })
       );
     }
@@ -174,13 +197,14 @@ export class ReviewOrchestrator {
       if (this.cancelled) return [];
 
       const findings = await harness.runAllAgents(context, (agent) => {
+        const agentName = this.agentRegistry.getAgentName(agent);
         this.emitProgress({
           stage: 'running-agents',
           currentModel: harness.modelName as ModelProvider,
           currentAgent: agent,
           modelsCompleted,
           modelsTotal: harnesses.length,
-          message: `${harness.modelName}: running ${agent} agent...`,
+          message: `${harness.modelName}: running ${agentName} agent...`,
           percent: 25 + (modelsCompleted / harnesses.length) * 50,
         });
       });
