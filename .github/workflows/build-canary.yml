@@ -1,0 +1,61 @@
+name: Build Canary (macOS)
+
+# Contributors trigger this manually from the Actions tab on their branch/PR.
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: 'Optional note about this canary build'
+        required: false
+        default: ''
+
+jobs:
+  build-macos:
+    name: Build macOS canary
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Cache Electron + electron-builder downloads to speed up repeat runs
+      - name: Cache electron-builder downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: electron-builder-macos-${{ hashFiles('package.json') }}
+          restore-keys: |
+            electron-builder-macos-
+
+      - name: Install dependencies
+        run: npm install
+
+      # Build renderer + electron TypeScript
+      - name: Build
+        run: npm run build
+
+      # Package with electron-builder for macOS only.
+      # CSC_IDENTITY_AUTO_DISCOVERY=false skips code-signing so unsigned
+      # canary DMGs can be produced without Apple Developer credentials.
+      # --publish never prevents electron-builder from trying to upload
+      # to the (unconfigured) generic publish URL.
+      - name: Package (macOS DMG + ZIP)
+        run: npx electron-builder --mac --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload canary artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quorum-macos-canary-${{ github.run_number }}
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/latest-mac.yml
+          if-no-files-found: error
+          retention-days: 14

@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import crypto from 'crypto';
 import { FeedbackTracker } from '../services/feedback/tracker';
 import { FeedbackAnalyzer } from '../services/feedback/analyzer';
 import { getDatabase } from '../services/db';

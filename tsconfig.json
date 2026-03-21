@@ -23,6 +23,5 @@
     },
     "baseUrl": "."
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.electron.json" }]
+  "include": ["src"]
 }

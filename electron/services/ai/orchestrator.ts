@@ -16,6 +16,8 @@ import { SkillRegistry } from './skills/registry';
 import { AnthropicProvider } from './providers/anthropic';
 import { OpenAIProvider } from './providers/openai';
 import { GeminiProvider } from './providers/gemini';
+import { shouldEnableDesignReview, hasSnapshotTests } from './sub-agents/design-review';
+import { RepoRulesParser } from '../../utils/repo-rules';
 import { hasSnapshotTests } from './sub-agents/design-review';
 import { RepoRulesParser } from '../utils/repo-rules';
 import { GitHubClient } from '../github/client';
