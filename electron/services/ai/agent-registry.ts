@@ -3,9 +3,12 @@ import {
   CustomSubAgentConfig,
   AgentEnableCondition,
   ReviewCategory,
+  ReviewFinding,
 } from '../types';
 import { getSubAgentPrompt } from './prompts';
 import { shouldEnableDesignReview, hasSnapshotTests } from './sub-agents/design-review';
+import { shouldEnableSecurity } from './sub-agents/security';
+import { shouldEnableTesting } from './sub-agents/testing';
 
 const BACKEND_EXTENSIONS = ['.ts', '.js', '.go', '.py', '.rb', '.java', '.rs', '.cs', '.php'];
 const UI_EXTENSIONS = ['.tsx', '.jsx', '.vue', '.svelte', '.css', '.scss', '.less', '.html'];
@@ -39,7 +42,7 @@ export class AgentRegistry {
       role: 'tech-lead',
       name: 'Tech Lead',
       prompt: getSubAgentPrompt('tech-lead'),
-      categories: ['architecture', 'security', 'performance', 'other'],
+      categories: ['architecture', 'performance', 'other'],
       isBuiltIn: true,
       enableCondition: 'builtin',
       enabled: true,
@@ -49,7 +52,27 @@ export class AgentRegistry {
       role: 'senior-engineer',
       name: 'Senior Engineer',
       prompt: getSubAgentPrompt('senior-engineer'),
-      categories: ['bug', 'performance', 'error-handling', 'style', 'naming', 'security', 'other'],
+      categories: ['bug', 'error-handling', 'style', 'naming', 'other'],
+      isBuiltIn: true,
+      enableCondition: 'builtin',
+      enabled: true,
+    });
+
+    this.agents.set('security', {
+      role: 'security',
+      name: 'Security',
+      prompt: getSubAgentPrompt('security'),
+      categories: ['security', 'other'],
+      isBuiltIn: true,
+      enableCondition: 'builtin',
+      enabled: true,
+    });
+
+    this.agents.set('testing', {
+      role: 'testing',
+      name: 'Testing',
+      prompt: getSubAgentPrompt('testing'),
+      categories: ['testing', 'bug', 'other'],
       isBuiltIn: true,
       enableCondition: 'builtin',
       enabled: true,
@@ -106,7 +129,7 @@ export class AgentRegistry {
       if (!agent.enabled) continue;
 
       if (agent.isBuiltIn) {
-        // Built-in agents use their original enablement logic
+        // Built-in agents use their own enablement logic
         if (agent.role === 'design-review') {
           if (
             enableDesignReview &&
@@ -116,6 +139,14 @@ export class AgentRegistry {
               filePaths: context.filePaths,
             })
           ) {
+            enabled.push(agent.role);
+          }
+        } else if (agent.role === 'security') {
+          if (shouldEnableSecurity({ filePaths: context.filePaths })) {
+            enabled.push(agent.role);
+          }
+        } else if (agent.role === 'testing') {
+          if (shouldEnableTesting({ filePaths: context.filePaths })) {
             enabled.push(agent.role);
           }
         } else {
@@ -149,6 +180,18 @@ export class AgentRegistry {
   isCustomAgent(role: SubAgentRole): boolean {
     const agent = this.agents.get(role as string);
     return agent ? !agent.isBuiltIn : false;
+  }
+
+  /**
+   * Filters findings to only categories the agent is registered for.
+   * Prevents agents from returning findings outside their domain.
+   */
+  filterFindingsByCategory(findings: ReviewFinding[]): ReviewFinding[] {
+    return findings.filter((f) => {
+      const agent = this.agents.get(f.subAgentSource as string);
+      if (!agent) return true; // unknown agent, keep the finding
+      return agent.categories.includes(f.category);
+    });
   }
 
   private shouldEnableCustomAgent(

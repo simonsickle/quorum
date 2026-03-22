@@ -4,7 +4,6 @@ export const TECH_LEAD_ROLE: SubAgentRole = 'tech-lead';
 
 export const TECH_LEAD_CATEGORIES = [
   'architecture',
-  'security',
   'performance',
   'other',
 ] as const;

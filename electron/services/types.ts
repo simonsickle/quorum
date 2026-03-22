@@ -10,7 +10,7 @@ export type ReviewCategory =
 
 export type ModelProvider = 'anthropic' | 'openai' | 'gemini';
 
-export type BuiltInAgentRole = 'tech-lead' | 'senior-engineer' | 'copyright-tone' | 'design-review';
+export type BuiltInAgentRole = 'tech-lead' | 'senior-engineer' | 'security' | 'testing' | 'copyright-tone' | 'design-review';
 
 export type SubAgentRole = BuiltInAgentRole | (string & {});
 

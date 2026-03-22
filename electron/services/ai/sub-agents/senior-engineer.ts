@@ -4,11 +4,9 @@ export const SENIOR_ENGINEER_ROLE: SubAgentRole = 'senior-engineer';
 
 export const SENIOR_ENGINEER_CATEGORIES = [
   'bug',
-  'performance',
   'error-handling',
   'style',
   'naming',
-  'security',
   'other',
 ] as const;
 

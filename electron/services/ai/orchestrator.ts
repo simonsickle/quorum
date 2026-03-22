@@ -224,6 +224,11 @@ export class ReviewOrchestrator {
       allFindings.push(...findings);
     }
 
+    // Filter findings to only categories each agent is registered for
+    const filteredFindings = this.agentRegistry.filterFindingsByCategory(allFindings);
+    allFindings.length = 0;
+    allFindings.push(...filteredFindings);
+
     if (this.cancelled) throw new Error('Review cancelled');
 
     // Consensus merge
