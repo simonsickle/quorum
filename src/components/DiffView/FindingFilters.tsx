@@ -82,7 +82,7 @@ export function FindingFilters({
         value={filters.searchQuery}
         onChange={(e) => onChange({ ...filters, searchQuery: e.target.value })}
         placeholder="Search findings..."
-        className="bg-surface-0 border border-border-default rounded px-2 py-1 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue w-40"
+        className="bg-surface-0 border border-border-default rounded px-2 py-1 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-blue w-40"
       />
 
       {/* Severity toggles */}

@@ -32,7 +32,7 @@ export function Dashboard() {
             onChange={(e) => setRepoName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="owner/repo"
-            className="flex-1 bg-surface-0 border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue"
+            className="flex-1 bg-surface-0 border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-blue"
           />
           <button
             onClick={handleSearch}

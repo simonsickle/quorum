@@ -139,7 +139,7 @@ export class ReviewOrchestrator {
 
     if (enabledModels.anthropic && this.config.apiKeys.anthropic) {
       const key = this.decryptKey(this.config.apiKeys.anthropic);
-      const model = this.config.settings.modelConfigs?.anthropic?.model || 'claude-sonnet-4-20250514';
+      const model = this.config.settings.modelConfigs?.anthropic?.model || 'claude-opus-4-6';
       harnesses.push(
         new ModelHarness({
           provider: new AnthropicProvider(key, model),
@@ -152,7 +152,7 @@ export class ReviewOrchestrator {
 
     if (enabledModels.openai && this.config.apiKeys.openai) {
       const key = this.decryptKey(this.config.apiKeys.openai);
-      const model = this.config.settings.modelConfigs?.openai?.model || 'gpt-4o';
+      const model = this.config.settings.modelConfigs?.openai?.model || 'gpt-5.3-codex';
       harnesses.push(
         new ModelHarness({
           provider: new OpenAIProvider(key, model),
@@ -165,7 +165,7 @@ export class ReviewOrchestrator {
 
     if (enabledModels.gemini && this.config.apiKeys.gemini) {
       const key = this.decryptKey(this.config.apiKeys.gemini);
-      const model = this.config.settings.modelConfigs?.gemini?.model || 'gemini-2.0-flash';
+      const model = this.config.settings.modelConfigs?.gemini?.model || 'gemini-3.1-pro-preview';
       harnesses.push(
         new ModelHarness({
           provider: new GeminiProvider(key, model),
@@ -242,7 +242,7 @@ export class ReviewOrchestrator {
     if (anthropicKey && allFindings.length > 0) {
       const consensus = new ConsensusEngine(
         anthropicKey,
-        this.config.settings.consensusModel || 'claude-haiku-4-5-20251001'
+        this.config.settings.consensusModel || 'claude-opus-4-6'
       );
       consensusFindings = await consensus.mergeFindings(allFindings);
     } else {

@@ -1,5 +1,5 @@
 export const PENDING_REVIEWS_QUERY = `
-  query PendingReviews($login: String!) {
+  query PendingReviews {
     search(
       query: "is:pr is:open review-requested:$login archived:false"
       type: ISSUE

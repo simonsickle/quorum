@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { GoogleGenerativeAI, type FunctionDeclarationSchema, SchemaType } from '@google/generative-ai';
 import { AIProvider, PRContext, ReviewFinding, SubAgentRole } from '../../types';
 import { SYSTEM_PROMPT } from '../prompts';
 import { SkillRegistry } from '../skills/registry';
@@ -11,7 +11,7 @@ export class GeminiProvider implements AIProvider {
   private genAI: GoogleGenerativeAI;
   private model: string;
 
-  constructor(apiKey: string, model: string = 'gemini-2.0-flash') {
+  constructor(apiKey: string, model: string = 'gemini-3.1-pro-preview') {
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = model;
   }
@@ -55,7 +55,7 @@ export class GeminiProvider implements AIProvider {
         required: Object.entries(skill.parameters)
           .filter(([_, param]) => param.required)
           .map(([name]) => name),
-      },
+      } as FunctionDeclarationSchema,
     }));
 
     const model = this.genAI.getGenerativeModel({

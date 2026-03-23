@@ -11,7 +11,7 @@ export class OpenAIProvider implements AIProvider {
   private client: OpenAI;
   private model: string;
 
-  constructor(apiKey: string, model: string = 'gpt-4o') {
+  constructor(apiKey: string, model: string = 'gpt-5.3-codex') {
     this.client = new OpenAI({ apiKey });
     this.model = model;
   }
@@ -89,6 +89,7 @@ export class OpenAIProvider implements AIProvider {
 
       // Execute tool calls and add results
       for (const toolCall of toolCalls) {
+        if (toolCall.type !== 'function') continue;
         const args = JSON.parse(toolCall.function.arguments || '{}');
         const result = await skillRegistry.executeSkill(toolCall.function.name, args);
 

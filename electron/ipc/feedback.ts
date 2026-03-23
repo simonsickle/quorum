@@ -49,8 +49,8 @@ function getApiKeyAndModel(db: any): { provider: string; apiKey: string; model: 
     if (enabledModels[provider] && apiKeys[provider]) {
       const modelConfigs = settings.modelConfigs || {};
       const model = modelConfigs[provider]?.model ||
-        (provider === 'anthropic' ? 'claude-sonnet-4-20250514' :
-         provider === 'openai' ? 'gpt-4o' : 'gemini-2.0-flash');
+        (provider === 'anthropic' ? 'claude-opus-4-6' :
+         provider === 'openai' ? 'gpt-5.3-codex' : 'gemini-3.1-pro-preview');
       return { provider, apiKey: decryptKey(apiKeys[provider]), model };
     }
   }

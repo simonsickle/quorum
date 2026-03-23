@@ -36,7 +36,7 @@ export class ConsensusEngine {
   private client: Anthropic;
   private model: string;
 
-  constructor(apiKey: string, model: string = 'claude-haiku-4-5-20251001') {
+  constructor(apiKey: string, model: string = 'claude-opus-4-6') {
     this.client = new Anthropic({ apiKey });
     this.model = model;
   }

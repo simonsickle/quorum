@@ -72,9 +72,7 @@ export class GitHubClient {
 
     const data = await this.graphql<{
       search: { nodes: any[] };
-    }>(PENDING_REVIEWS_QUERY.replace('$login', this.login), {
-      login: this.login,
-    });
+    }>(PENDING_REVIEWS_QUERY.replace('$login', this.login));
 
     return data.search.nodes.map((node) => ({
       ...node,

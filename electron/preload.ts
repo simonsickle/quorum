@@ -25,6 +25,7 @@ export interface ElectronAPI {
     saveApiKey: (provider: string, key: string) => Promise<void>;
     getApiKey: (provider: string) => Promise<string>;
     deleteApiKey: (provider: string) => Promise<void>;
+    listModels: (provider: string) => Promise<{ id: string; name: string }[]>;
   };
   // Stack
   stack: {
@@ -72,6 +73,7 @@ const api: ElectronAPI = {
     saveApiKey: (provider, key) => ipcRenderer.invoke('settings:save-api-key', provider, key),
     getApiKey: (provider) => ipcRenderer.invoke('settings:get-api-key', provider),
     deleteApiKey: (provider) => ipcRenderer.invoke('settings:delete-api-key', provider),
+    listModels: (provider) => ipcRenderer.invoke('settings:list-models', provider),
   },
   stack: {
     detectStack: (repoPath, branch) =>

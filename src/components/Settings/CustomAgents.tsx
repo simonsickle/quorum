@@ -145,14 +145,14 @@ export function CustomAgents({ agents, onSave }: CustomAgentsProps) {
         value={formData.name}
         onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
         placeholder="Agent name (e.g., Testing Focus)"
-        className="w-full bg-surface-1 border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue"
+        className="w-full bg-surface-1 border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-blue"
       />
       <textarea
         value={formData.prompt}
         onChange={(e) => setFormData((prev) => ({ ...prev, prompt: e.target.value }))}
         placeholder="Agent prompt — describe the reviewer's focus areas and instructions..."
         rows={6}
-        className="w-full bg-surface-1 border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue resize-y font-mono"
+        className="w-full bg-surface-1 border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-blue resize-y font-mono"
       />
       <div>
         <span className="text-xs text-text-secondary block mb-1">Categories:</span>

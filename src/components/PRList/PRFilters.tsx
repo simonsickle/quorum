@@ -24,7 +24,7 @@ export function PRFilters({
           value={filterText}
           onChange={(e) => onFilterChange(e.target.value)}
           placeholder="Filter PRs by title, repo, or author..."
-          className="w-full bg-surface-0 border border-border-default rounded-md px-3 py-1.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue"
+          className="w-full bg-surface-0 border border-border-default rounded-md px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-blue"
         />
       </div>
 

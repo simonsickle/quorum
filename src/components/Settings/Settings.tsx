@@ -61,7 +61,7 @@ export function Settings() {
                 setTokenStatus('idle');
               }}
               placeholder={settings.githubToken ? '••••••••' : 'ghp_...'}
-              className="flex-1 bg-surface-0 border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue"
+              className="flex-1 bg-surface-0 border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-blue"
             />
             <button
               onClick={handleSaveGitHubToken}
@@ -150,13 +150,13 @@ export function Settings() {
               </div>
               <button
                 onClick={() => saveSettings({ autoReview: !settings.autoReview })}
-                className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${
+                className={`shrink-0 w-10 h-5 rounded-full transition-colors relative overflow-hidden cursor-pointer ${
                   settings.autoReview ? 'bg-accent-blue' : 'bg-surface-3'
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    settings.autoReview ? 'translate-x-5' : 'translate-x-0.5'
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    settings.autoReview ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
@@ -173,13 +173,13 @@ export function Settings() {
                 onClick={() =>
                   saveSettings({ enableDesignReview: !settings.enableDesignReview })
                 }
-                className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${
+                className={`shrink-0 w-10 h-5 rounded-full transition-colors relative overflow-hidden cursor-pointer ${
                   settings.enableDesignReview ? 'bg-accent-blue' : 'bg-surface-3'
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    settings.enableDesignReview ? 'translate-x-5' : 'translate-x-0.5'
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    settings.enableDesignReview ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
@@ -200,12 +200,12 @@ export function Settings() {
                     enableStackDetection: !settings.enableStackDetection,
                   })
                 }
-                className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${
+                className={`shrink-0 w-10 h-5 rounded-full transition-colors relative overflow-hidden cursor-pointer ${
                   settings.enableStackDetection ? 'bg-accent-blue' : 'bg-surface-3'
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
                     settings.enableStackDetection
                       ? 'translate-x-5'
                       : 'translate-x-0.5'
